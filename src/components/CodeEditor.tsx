@@ -11,8 +11,26 @@ interface CodeEditorProps {
   tabSize?: number;
 }
 
+interface TextAreaState {
+  value: string;
+  selectionStart: number;
+  selectionEnd: number;
+}
+
 export default function CodeEditor(props: CodeEditorProps) {
-  const textAreaRef = useRef(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  const updateTextAreaState = (input: TextAreaState) => {
+    const { value, selectionEnd, selectionStart } = input;
+
+    if (!textAreaRef.current) {
+      return;
+    }
+
+    textAreaRef.current.value = value;
+    textAreaRef.current.selectionStart = selectionStart;
+    textAreaRef.current.selectionEnd = selectionEnd;
+  };
 
   const onChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     let text = event.currentTarget.value;
@@ -22,18 +40,24 @@ export default function CodeEditor(props: CodeEditorProps) {
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const key = event.key;
     const { selectionStart, selectionEnd } = event.currentTarget;
+
     if (key === "Tab") {
       event.preventDefault();
 
       if (selectionStart === selectionEnd) {
         // insert tab
         const tabSize = props.tabSize ?? 2;
-        const tabValue = "\t".repeat(tabSize);
+        const tabValue = " ".repeat(tabSize);
         const value =
           props.value.substring(0, selectionStart) +
           tabValue +
           props.value.substring(selectionEnd);
-
+        const updatedSelectionValue = selectionStart + tabValue.length;
+        updateTextAreaState({
+          value,
+          selectionStart: updatedSelectionValue,
+          selectionEnd: updatedSelectionValue,
+        });
         props.onValueChange(value);
       }
     }
