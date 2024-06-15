@@ -17,8 +17,17 @@ interface TextAreaState {
   selectionEnd: number;
 }
 
+const brackets = {
+  "(": ")",
+  "{": "}",
+  "[": "]",
+};
+
 export default function CodeEditor(props: CodeEditorProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const currState = {
+    lastKey: "",
+  };
 
   const updateTextAreaState = (input: TextAreaState) => {
     const { value, selectionEnd, selectionStart } = input;
@@ -33,12 +42,31 @@ export default function CodeEditor(props: CodeEditorProps) {
   };
 
   const onChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    let text = event.currentTarget.value;
+    const { selectionStart, selectionEnd, value } = event.currentTarget;
+    let text = value;
+    const lastChar = text.charAt(selectionStart - 1);
+    const isBracket = Object.keys(brackets).includes(lastChar);
+
+    if (lastChar && isBracket && currState.lastKey !== "Backspace") {
+      // add closing bracket
+      text =
+        text.substring(0, selectionStart) +
+        brackets[lastChar as keyof typeof brackets] +
+        text.substring(selectionStart);
+
+      updateTextAreaState({
+        value: text,
+        selectionStart,
+        selectionEnd,
+      });
+    }
+
     props.onValueChange(text);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const key = event.key;
+    currState.lastKey = key;
     const { selectionStart, selectionEnd } = event.currentTarget;
 
     if (key === "Tab") {
