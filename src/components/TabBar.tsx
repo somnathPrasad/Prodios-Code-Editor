@@ -21,6 +21,7 @@ export default function TabBar(props: TabsProps) {
     <div className="bg-zinc-800 border-t border-t-zinc-700 text-white flex">
       {props.tabs.map((tab) => (
         <div
+          key={tab.id}
           className={`py-2 ${
             tab.active
               ? "bg-[rgb(30,30,30)] border-t-blue-800"
